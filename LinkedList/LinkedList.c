@@ -7,10 +7,10 @@
 #include "LinkedList.h"
 
 
-LinkedList* createLinkedList(){
+struct LinkedList* createLinkedList(){
 
-	LinkedList* toReturn;
-	toReturn = malloc(sizeof(LinkedList));
+	struct LinkedList* toReturn;
+	toReturn = malloc(sizeof(struct LinkedList));
 	if(!toReturn){ // Error
 		// Write error handler?
 		printf("Error allocating memory for linked list.");
@@ -25,7 +25,7 @@ LinkedList* createLinkedList(){
 }
 
 
-void addNode(LinkedList* linkedList, void* key, int position){
+void addNode(struct LinkedList* linkedList, void* key, int position){
 
 	if(position > linkedList->size){ // Error
 		printf("Position is too large to be valid.");
@@ -34,6 +34,7 @@ void addNode(LinkedList* linkedList, void* key, int position){
 
 	if(position < 0){ // Error
 		printf("Position is too small to be valid.");
+		return;
 	}
 
 	if(!linkedList){ // Error
@@ -43,9 +44,11 @@ void addNode(LinkedList* linkedList, void* key, int position){
 
 	if(!key){ // Error
 		printf("Provide a valid key structure");
+		return;
+	}
 
-	LinkedListNode* newNode;
-	newNode = malloc(sizeof(LinkedListNode));
+	struct LinkedListNode* newNode;
+	newNode = malloc(sizeof(struct LinkedListNode));
 	if(!newNode) { // Error
 		printf("Error allocating memory for linked list node.");
 		return;
@@ -53,10 +56,10 @@ void addNode(LinkedList* linkedList, void* key, int position){
 
 	newNode->key = key;
 	
-	if(size == 0) {
+	if(linkedList->size == 0) {
 		linkedList->head=newNode;
 		linkedList->tail=newNode;
-		size = 1;
+		linkedList->size = 1;
 		newNode->prev = NULL;
 		newNode->next = NULL;
 		return;
@@ -80,39 +83,39 @@ void addNode(LinkedList* linkedList, void* key, int position){
 		return;
 	}
 
-	LinkedListNode *nextNode;
+	struct LinkedListNode *nextNode;
 	nextNode = getNode(linkedList,position);
 	newNode->next = nextNode;
 	newNode->prev = nextNode->prev;
 	nextNode->prev->next = newNode;
 	nextNode->prev = newNode;
 	linkedList->size +=1;
-	return;
 }
 
 
-likedListNode* getNode(LinkedList* linkedList, int position){
+struct LinkedListNode* getNode(struct LinkedList* linkedList, int position){
 	if(position > linkedList->size){ // Error
 		printf("Position is too large to be valid.");
-		return;
+		return NULL;
 	}
 
 	if(position < 0){ // Error
 		printf("Position is too small to be valid.");
+		return NULL;
 	}
 
 	if(!linkedList){ // Error
 		printf("Provide a valid linked list structure");
-		return;
+		return NULL;
 	}
 	
 	if(linkedList->size == 0){ // Error
 		printf("Linked List is Empty");
-		return;
+		return NULL;
 	}
 
 	int i = 0;
-	LinkedListNode *currNode;
+	struct LinkedListNode *currNode;
 	currNode = linkedList->head;
 	while(i++ < position) {
 		currNode = currNode->next;
@@ -121,57 +124,79 @@ likedListNode* getNode(LinkedList* linkedList, int position){
 }
 
 
-void removeNode(LinkedList* linkedList, void (*freeKey)(void*), int position){
+void removeNode(struct LinkedList* linkedList, void (*freeKey)(void*), int position){
 	if(position >= linkedList->size){ // Error
-		printf("Position is too large to be valid.");
+		printf("Position is too large to be valid.\n");
 		return;
 	}
 
 	if(position < 0){ // Error
-		printf("Position is too small to be valid.");
+		printf("Position is too small to be valid.\n");
 	}
 
 	if(!linkedList){ // Error
-		printf("Provide a valid linked list structure");
+		printf("Provide a valid linked list structure.\n");
 		return;
 	}
 
 	if(linkedList->size == 0){ // Error
-		printf("Linked List is Empty");
+		printf("Linked List is Empty.\n");
 		return;
 	}
 	
-	LinkedListNode *toDel;
+	struct LinkedListNode *toDel;
 	toDel = getNode(linkedList, position);
+
 	if(toDel->prev == NULL) {
-		toDel->next->prev = NULL;
-	}else{
-		toDel->next->prev = toDel->prev;
+		if(toDel->next == NULL) {} else {
+			toDel->next->prev = NULL;
+		}
+	} else {
+		if(toDel->next == NULL) {} else {
+			toDel->next->prev = toDel->prev;
+		}
 	}
+
 	if(toDel->next == NULL) {
-		toDel->prev->next = NULL;
-	}else{
-		toDel->prev->next = toDel->next;
+		if(toDel->prev == NULL) {} else {
+			toDel->prev->next = NULL;
+		}
+	} else {
+		if(toDel->prev == NULL) {} else {
+			toDel->prev->next = toDel->next;
+		}
+	}
+
+	if(linkedList->head == toDel){
+		if(toDel->next == NULL) {
+			linkedList->head = NULL;
+		} else {
+			linkedList->head = toDel->next;
+		}
+	}
+
+	if(linkedList->tail == toDel){
+		if(toDel->prev == NULL) {
+			linkedList->tail = NULL;
+		} else {
+			linkedList->tail = toDel->prev;
+		}
 	}
 
 	linkedList->size -= 1;
 	freeLinkedListNode(toDel, freeKey);
-	return;
 }
 
 
-void freeLinkedList(LinkedList* linkedList, void (*freeKey)(void*)){
+void freeLinkedList(struct LinkedList* linkedList, void (*freeKey)(void*)){
 	while(linkedList->size > 0){
 		removeNode(linkedList,freeKey,0);
 	}
 	free(linkedList);
-	return;
 }
 
 
-void freeLinkedListNode(linkedListNode* node, void (*freeKey)(void*)){
+void freeLinkedListNode(struct LinkedListNode* node, void (*freeKey)(void*)){
 	freeKey(node->key);
 	free(node);
-	return;
 }
-
